@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.hypothesis/
+.coverage
+htmlcov/
+.idea/
+.venv/
+pr2/data/
+pr2/.coverage
+pr2/htmlcov/
+.vscode/
