@@ -1,1 +1,7 @@
+Flask
+hypothesis
+pytest
+coverage
 imageio-ffmpeg
+requests
+pydantic
