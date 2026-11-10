@@ -16,7 +16,8 @@ from werkzeug.exceptions import BadRequest, RequestEntityTooLarge
 from .executor import JobQueue, complete, create_command
 from .schemas import (CommandCreate, CommandFilters, IdentifierQuery,
                       OutputFilters, ParticipantCreate, ParticipantFilters)
-from .storage import MemoryStore, RecordNotFoundError, ValidationError
+from .storage import RecordNotFoundError, ValidationError
+from .tiny_storage import TinyStore
 
 
 api = Blueprint("api", __name__)
@@ -24,10 +25,12 @@ VIDEO_LIMIT = 10 * 1024 * 1024
 REQUEST_LIMIT = 14 * 1024 * 1024
 
 
-def create_app(testing=False, store=None, clock=time.time):
+def create_app(testing=False, store=None, clock=time.time,
+               database_path=None):
+    default_path = Path(__file__).parents[1] / "data/audio.json"
     app = Flask(__name__, template_folder="../templates")
     app.config.update(TESTING=testing, MAX_CONTENT_LENGTH=REQUEST_LIMIT,
-                      STORE=store or MemoryStore(),
+                      STORE=store or TinyStore(database_path or default_path),
                       CLOCK=clock,
                       RESULT_DIR=Path(__file__).parents[1] / "data/audio")
 
@@ -36,6 +39,8 @@ def create_app(testing=False, store=None, clock=time.time):
     if not testing:
         app.config["JOBS"] = JobQueue(app.config["STORE"],
                                       app.config["RESULT_DIR"], clock, lock)
+        if isinstance(app.config["STORE"], TinyStore):
+            app.config["STORE"].fail_interrupted(int(clock()))
     app.before_request(prepare_request)
     app.teardown_request(release_store)
     app.register_blueprint(api)

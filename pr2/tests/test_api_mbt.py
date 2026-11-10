@@ -1,8 +1,8 @@
 """MBT для HTTP API."""
 
 from http import HTTPStatus
-
-import time
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import pytest
 from hypothesis import settings
@@ -11,7 +11,7 @@ from hypothesis.stateful import Bundle, RuleBasedStateMachine, rule
 
 from pr2.src.app import create_app
 from pr2.src.client import ApiError, Client
-from pr2.src.storage import MemoryStore
+from pr2.src.tiny_storage import TinyStore
 
 NOW = 1700000000
 TEXT = st.text(alphabet=st.characters(min_codepoint=32,
@@ -62,10 +62,16 @@ class ApiMachine(RuleBasedStateMachine):
     def __init__(self):
         super().__init__()
         self.expected = Expected()
-        app = create_app(testing=True, store=MemoryStore(),
+        self.directory = TemporaryDirectory()
+        self.store = TinyStore(Path(self.directory.name) / "test.json")
+        app = create_app(testing=True, store=self.store,
                          clock=lambda: NOW)
         self.raw = app.test_client()
         self.client = Client(test_client=self.raw)
+
+    def teardown(self):
+        self.store.close()
+        self.directory.cleanup()
 
     @rule(target=participants, timestamp=TIME, locale=TEXT, platform=TEXT)
     def create_participant(self, timestamp, locale, platform):

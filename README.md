@@ -66,3 +66,13 @@ ID участника `participant`, `state`, время постановки `e
 .\.venv\Scripts\python.exe -m coverage run --branch --source=pr2/src -m pytest pr2/tests -q
 .\.venv\Scripts\python.exe -m coverage report -m
 ```
+
+## Этап 3. TinyDB
+
+`tiny_storage.py` сохраняет участников, команды и результаты в
+`pr2/data/audio.json`. Другой файл можно выбрать через `--database`.
+Готовый MP3 хранится в `pr2/data/audio`. После перезапуска с тем же
+файлом базы результаты доступны по прежним ссылкам. Прерванные задачи
+помечаются как `failed`, видео нужно отправить повторно.
+
+Модельные тесты используют отдельную временную базу.

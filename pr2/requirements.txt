@@ -2,6 +2,7 @@ Flask
 hypothesis
 pytest
 coverage
+tinydb
 imageio-ffmpeg
 requests
 pydantic
